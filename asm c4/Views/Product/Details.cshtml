@@ -1,0 +1,51 @@
+﻿@model Sach
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <img src="@Model.HinhAnh" class="img-fluid" alt="@Model.TenSach">
+        </div>
+        <div class="col-md-8">
+            <h2>@Model.TenSach</h2>
+            <p>@Model.MoTa</p>
+            <h4>Giá: @Model.GiaTien.ToString("C")</h4>
+            <p>Còn lại: @Model.SoLuong sản phẩm</p>
+
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+            }
+
+            <form asp-action="AddToCart" method="post">
+                <input type="hidden" name="id" value="@Model.SachId" />
+
+                <div class="form-group">
+                    <label for="quantity">Số lượng:</label>
+                    <input type="number" name="quantity" id="quantity" min="1" max="@Model.SoLuong" class="form-control" value="1" required />
+                    <div class="invalid-feedback">@ViewBag.ErrorMessage
+                        Vui lòng chọn số lượng hợp lệ.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">Thêm vào giỏ hàng</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const quantityInput = document.getElementById("quantity");
+        const maxQuantity = parseInt(quantityInput.getAttribute("max"));
+
+        quantityInput.addEventListener("input", function () {
+            const currentQuantity = parseInt(quantityInput.value);
+            if (currentQuantity > maxQuantity) {
+                alert(`Số lượng không thể vượt quá ${maxQuantity}. Vui lòng chọn số lượng hợp lệ.`);
+                quantityInput.value = maxQuantity; // Đặt lại giá trị về tối đa
+            } else if (currentQuantity < 1) {
+                alert("Số lượng không thể nhỏ hơn 1. Vui lòng chọn số lượng hợp lệ.");
+                quantityInput.value = 1; // Đặt lại giá trị về tối thiểu
+            }
+        });
+    });
+</script>

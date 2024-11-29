@@ -1,0 +1,47 @@
+﻿@model IEnumerable<asm_c4.Models.Sach>
+@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Quản lý sách</h2>
+
+<a class="btn btn-primary" asp-action="CreateBook">Thêm sách mới</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Tên Sách</th>
+            <th>Mô Tả</th>
+            <th>Giá Tiền</th>
+            <th>Số Lượng</th>
+            <th>Trạng Thái</th>
+            <th>Hình Ảnh</th> <!-- Cột hình ảnh -->
+            <th>Danh Mục id</th>
+            <th>Hành Động</th>
+           
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TenSach</td>
+                <td>@item.MoTa</td>
+                <td>@item.GiaTien</td>
+                <td>@item.SoLuong</td>
+                <td>@(item.TrangThai ? "Đang kinh doanh" : "Ngừng kinh doanh")</td>
+                <td>
+                    <img src="@Url.Content(  item.HinhAnh)" alt="@item.TenSach" style="width: 100px; height: auto;" /> <!-- Hiển thị hình ảnh -->
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DanhMuc.DanhMucId)
+                </td>
+                
+                <td>
+                    <a class="btn btn-warning" asp-action="EditBook" asp-route-id="@item.SachId">Sửa</a>
+                    <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.SachId">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

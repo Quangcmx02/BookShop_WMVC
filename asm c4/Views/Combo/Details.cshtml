@@ -1,0 +1,90 @@
+﻿<div class="container mt-4">
+    <div class="row">
+        <!-- Ảnh combo -->
+        <div class="col-md-6 d-flex justify-content-center align-items-center">
+            @if (!string.IsNullOrEmpty(Model.LinkImages))
+            {
+                <img src="@Model.LinkImages" alt="@Model.TenCombo" class="img-fluid rounded shadow" style="max-height: 300px; object-fit: cover;" />
+            }
+            else
+            {
+                <p>Không có hình ảnh</p>
+            }
+        </div>
+
+        <!-- Thông tin combo -->
+        <div class="col-md-6">
+            <h2 class="text-primary">@Model.TenCombo</h2>
+            <p class="text-muted">@Model.MoTa</p>
+            <h4 class="text-danger">Giá: @Model.Gia.ToString("C")</h4>
+            <p>Số lượng: <strong>@Model.Quantity</strong></p>
+            <form asp-action="AddComboToCart" method="post">
+                <input type="hidden" name="comboId" value="@Model.ComboId" />
+                <div class="form-group">
+                    <label for="quantity">Số lượng:</label>
+                    <input type="number" name="quantity" id="quantity" min="1" max="@Model.Quantity" class="form-control" value="1" required />
+                    <div class="invalid-feedback">
+                        Vui lòng chọn số lượng hợp lệ.
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-3">Thêm vào giỏ hàng</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <!-- Danh sách sách trong combo -->
+        <div class="col-12">
+            <h3 class="mb-4">Các sách trong combo</h3>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Tên sách</th>
+                        <th>Giá</th>
+                        <th>Số lượng</th>
+                        <th>Thể Loại</th>
+                        <th>Hình ảnh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in ViewBag.Books)
+                    {
+                        <tr>
+                            <td>
+                                <!-- Thêm liên kết tới chi tiết sách -->
+                                <a href="@Url.Action("Details", "Product", new { id = book.SachId })" class="product-link">
+                                    @book.TenSach
+                                </a>
+                            </td>
+                            <td>@book.GiaTien.ToString("C")</td>
+                            <td>@book.QuantityInCombo</td>
+                            <td>@book.DanhMuc</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(book.HinhAnh))
+                                {
+                                    <img src="@book.HinhAnh" alt="@book.TenSach" class="img-fluid rounded" style="width: 100px; height: auto;" />
+                                }
+                                else
+                                {
+                                    <span>Không có hình ảnh</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- CSS tùy chỉnh cho liên kết sản phẩm -->
+<style>
+    .product-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .product-link:hover {
+            color: #007bff; /* Màu khi hover */
+        }
+</style>

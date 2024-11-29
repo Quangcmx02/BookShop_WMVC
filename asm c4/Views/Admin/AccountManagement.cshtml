@@ -1,0 +1,46 @@
+﻿@model IEnumerable<asm_c4.Models.User>
+@{
+    Layout = "_AdminLayout";
+}
+
+<h1>Quản lý tài khoản</h1>
+
+<a class="btn btn-primary" asp-action="CreateAccount">Tạo tài khoản mới</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên đăng nhập</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Vai trò</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserId</td>
+                <td>@user.Username</td>
+              
+                <td>@user.Email</td>
+                <td>@user.Phone</td>
+                <td>@user.VaiTro</td>
+                <td>
+                    <a class="btn btn-warning btn-sm" asp-action="EditAccount" asp-route-id="@user.UserId">Sửa</a>
+                    @if (user.VaiTro != "Admin")
+                    {
+                        <a class="btn btn-danger btn-sm" asp-action="DeleteAccount" asp-route-id="@user.UserId">Xóa</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}

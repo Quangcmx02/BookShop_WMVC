@@ -1,0 +1,39 @@
+﻿@model IEnumerable<asm_c4.Models.DonHang>
+@{
+    Layout = "_AdminLayout";
+}
+
+@{
+    ViewData["Title"] = "Order Management";
+}
+
+<h2>Order Management</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>User</th>
+            <th>Date</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.DonHangId</td>
+                <td>@order.User.Username</td> <!-- Giả sử bạn có thuộc tính FullName trong User -->
+                <td>@order.NgayDat.ToString("dd/MM/yyyy")</td>
+                <td>@order.TongTien.ToString("C")</td>
+                <td>@order.TrangThai</td>
+                <td>
+                    <a href="@Url.Action("ViewOrder", "Admin", new { id = order.DonHangId })" class="btn btn-info">View</a>
+                    <!-- Thêm các hành động khác nếu cần -->
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

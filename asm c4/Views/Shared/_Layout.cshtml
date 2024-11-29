@@ -1,0 +1,97 @@
+﻿@using Newtonsoft.Json;
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OnlineShop</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- FontAwesome CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+    <!-- Custom CSS (nếu có) -->
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand" href="/">OnlineShop</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            @* <a class="nav-link" href="/">Trang Chủ</a> *@
+                        </li>
+                        @{
+                            var userSession = HttpContextAccessor.HttpContext.Session.GetString("UserSession");
+                            var user = !string.IsNullOrEmpty(userSession)
+                            ? JsonConvert.DeserializeObject<asm_c4.Models.User>(userSession)
+                            : null;
+
+                            if (user != null)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Account/AccountManage">Xin chào, @user.Username!</a>
+                                </li>
+
+                                @if (user.VaiTro == "Admin") // Kiểm tra vai trò admin
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/Admin/Dashboard">Quản lý</a>
+                                    </li>
+                                }
+                                @* If user is not admin but logged in, show orders menu item *@
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Order/Index">Đơn Hàng</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Account/Logout">Đăng Xuất</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <!-- Người dùng chưa đăng nhập -->
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Account/Login">Đăng Nhập</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Account/Register">Đăng Ký</a>
+                                </li>
+                            }
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Cart">Giỏ Hàng <i class="fas fa-shopping-cart"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 OnlineShop. All rights reserved.</p>
+            <p><i class="fas fa-phone-alt"></i> Hotline: 123-456-789</p>
+            <p><i class="fas fa-envelope"></i> Email: support@onlineshop.com</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS (cần thiết cho một số tính năng như dropdown) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS (nếu có) -->
+    <script src="~/js/site.js"></script>
+</body>
+</html>

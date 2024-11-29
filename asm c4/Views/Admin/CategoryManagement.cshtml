@@ -1,0 +1,36 @@
+﻿@model IEnumerable<asm_c4.Models.DanhMuc>
+@{
+    Layout = "_AdminLayout";
+}
+
+<h1>Quản lý danh mục</h1>
+
+<a class="btn btn-primary" asp-action="CreateCategory">Tạo danh mục mới</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên danh mục</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model)
+        {
+            <tr>
+                <td>@category.DanhMucId</td>
+                <td>@category.TenDanhMuc</td>
+                <td>
+                    <a class="btn btn-warning btn-sm" asp-action="EditCategory" asp-route-id="@category.DanhMucId">Sửa</a>
+                    <a class="btn btn-danger btn-sm" asp-action="DeleteCategory" asp-route-id="@category.DanhMucId">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}

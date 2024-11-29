@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<h2>Đăng ký tài khoản mới</h2>
+
+<form method="post" onsubmit="return validateForm()">
+    <div class="form-group">
+        <label for="username">Tên đăng nhập</label>
+        <input type="text" id="username" name="username" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" class="form-control" required />
+        <small id="emailError" class="text-danger d-none">Email không hợp lệ.</small>
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Số điện thoại</label>
+        <input type="text" id="phone" name="phone" class="form-control" required />
+        <small id="phoneError" class="text-danger d-none">Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.</small>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <input type="password" id="password" name="password" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="confirmPassword">Xác nhận mật khẩu</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Đăng ký</button>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-warning mt-3">
+            @ViewBag.Message
+        </div>
+    }
+</form>
+
+<p>Đã có tài khoản? <a href="@Url.Action("Login", "Account")">Đăng nhập tại đây</a></p>
+
+<script>
+    function validateForm() {
+        let email = document.getElementById("email").value;
+        let phone = document.getElementById("phone").value;
+
+        // Validate email
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/; 
+        const isValidEmail = emailRegex.test(email);
+        document.getElementById("emailError").classList.toggle("d-none", isValidEmail);
+
+        // Validate phone
+        const phoneRegex = /^0\d{9}$/;
+        const isValidPhone = phoneRegex.test(phone);
+        document.getElementById("phoneError").classList.toggle("d-none", isValidPhone);
+
+        // Return false if validation fails
+        return isValidEmail && isValidPhone;
+    }
+</script>
+
+

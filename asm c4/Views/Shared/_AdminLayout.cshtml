@@ -1,0 +1,145 @@
+﻿@using Newtonsoft.Json
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var userSession = HttpContextAccessor.HttpContext.Session.GetString("UserSession");
+    var user = !string.IsNullOrEmpty(userSession)
+        ? JsonConvert.DeserializeObject<asm_c4.Models.User>(userSession)
+        : null;
+
+    if (user == null || user.VaiTro != "Admin")
+    {
+        // Redirect to an error or home page if user is not admin
+        Context.Response.Redirect("/Product/Index");
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        /* Bao gồm CSS đã cập nhật ở trên */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar cố định */
+        .sidenav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh; /* Chiều cao đầy đủ màn hình */
+            background-color: #f8f9fa;
+            padding: 20px;
+            overflow-y: auto; /* Thêm thanh cuộn nếu nội dung dài */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000; /* Đảm bảo sidebar luôn ở trên các phần tử khác */
+        }
+
+            .sidenav .navigation-link {
+                display: block;
+                margin-bottom: 15px;
+                color: #212529;
+                text-decoration: none;
+            }
+
+                .sidenav .navigation-link:hover {
+                    color: #0d6efd;
+                }
+
+        /* Điều chỉnh phần nội dung bên phải để tránh bị che bởi sidebar */
+        .right-panel {
+            margin-left: 250px; /* Bằng với width của .sidenav */
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-bar {
+            background-color: #343a40;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999; /* Đảm bảo navbar luôn ở trên phần nội dung */
+        }
+
+        .content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto; /* Thêm thanh cuộn cho nội dung nếu cần */
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidenav">
+            <a class="navigation-link" href="/Home/Index">
+                <i class="bi bi-house-door"></i> Trang chủ
+            </a>
+            <a href="/Admin/OrderManagement" class="navigation-link">
+                <i class="bi bi-receipt"></i> Quản lý đơn hàng
+            </a>
+            <a href="/Admin/BookManagement" class="navigation-link">
+                <i class="bi bi-archive"></i> Quản lý sách
+            </a>
+            <a href="/Admin/CategoryManagement" class="navigation-link">
+                <i class="bi bi-collection"></i> Quản lý thể loại
+            </a>
+            <a href="/Admin/AccountManagement" class="navigation-link">
+                <i class="bi bi-book"></i> Quản lý tài khoản
+            </a>
+            <a href="/Admin/ComboManagement" class="navigation-link">
+                <i class="bi bi-book"></i> Quản lý Combo sách
+            </a>
+            <a href="/Genre/Statistics" class="navigation-link" onclick="hideBanner()">
+                <i class="bi bi-bar-chart"></i> Thống kê sách theo thể loại
+            </a>
+            <a href="/Account/Index" class="navigation-link">
+                <i class="bi bi-person"></i> Quản lý tài khoản
+            </a>
+            <a href="/Reports/TopFiveSellingBooks" class="navigation-link">
+                <i class="bi bi-bar-chart"></i> Sách bán chạy
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="right-panel">
+            <!-- Navbar -->
+            <nav class="nav-bar">
+                <div class="nav-heading">Welcome @user?.Username</div>
+                <div class="nav-actions">
+                    <form asp-area="Identity" asp-page="/Account/Logout" method="post"
+                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
+                          class="d-inline">
+                        <a class="nav-link" href="/Account/Logout">Đăng Xuất</a>
+                    </form>
+                </div>
+            </nav>
+
+            <!-- Dynamic Content -->
+            <div class="content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

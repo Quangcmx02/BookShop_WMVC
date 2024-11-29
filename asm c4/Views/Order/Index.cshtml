@@ -1,0 +1,71 @@
+﻿@model IEnumerable<asm_c4.Models.DonHang>
+
+@{
+    ViewData["Title"] = "Danh Sách Đơn Hàng";
+}
+
+<h2 class="text-center mb-4">@ViewData["Title"]</h2>
+
+@if (Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>ID Đơn Hàng</th>
+                <th>Ngày Đặt</th>
+                <th>Sản Phẩm</th>
+                <th>Số Lượng</th>
+                <th>Tổng Tiền</th>
+                <th>Trạng Thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.DonHangId</td> <!-- Hiển thị ID đơn hàng -->
+                    <td>@order.NgayDat.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @foreach (var detail in order.DonHangChiTiets)
+                        {
+                            <p class="mb-1">@detail.Sach.TenSach</p>
+                        }
+                    </td>
+                    <td>
+                        @foreach (var detail in order.DonHangChiTiets)
+                        {
+                            <p class="mb-1">@detail.SoLuong</p>
+                        }
+                    </td>
+                    <td>@order.TongTien.ToString("C")</td>
+                    <td>
+                        @if (order.TrangThai == "Hoàn thành")
+                        {
+                            <span class="badge bg-success">Hoàn thành</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Chưa hoàn thành</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-center">Hiện tại bạn chưa có đơn hàng nào.</p>
+}
+
+<!-- Thêm CSS tùy chỉnh nếu cần -->
+<style>
+    .table td, .table th {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+</style>

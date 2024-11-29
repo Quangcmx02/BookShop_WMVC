@@ -1,0 +1,21 @@
+﻿@model asm_c4.Models.DanhMuc
+@{
+    Layout = "_AdminLayout";
+}
+
+<h1>Chỉnh sửa danh mục</h1>
+
+<form asp-action="EditCategory" method="post">
+    <div class="form-group">
+        <label for="DanhMucId">ID</label>
+        <input type="text" class="form-control" id="DanhMucId" name="DanhMucId" value="@Model.DanhMucId" readonly />
+    </div>
+
+    <div class="form-group">
+        <label for="TenDanhMuc">Tên danh mục</label>
+        <input type="text" class="form-control" id="TenDanhMuc" name="TenDanhMuc" value="@Model.TenDanhMuc" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+    <a class="btn btn-secondary" asp-action="CategoriesManagement">Hủy</a>
+</form>

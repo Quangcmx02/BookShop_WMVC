@@ -1,0 +1,16 @@
+﻿@model asm_c4.Models.DanhMuc
+@{
+    Layout = "_AdminLayout";
+}
+
+<h1>Thêm mới danh mục</h1>
+
+<form asp-action="CreateCategory" method="post">
+    <div class="form-group">
+        <label for="TenDanhMuc">Tên danh mục</label>
+        <input type="text" class="form-control" id="TenDanhMuc" name="TenDanhMuc" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a class="btn btn-secondary" asp-action="CategoriesManagement">Hủy</a>
+</form>
