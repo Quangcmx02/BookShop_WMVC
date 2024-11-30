@@ -57,12 +57,22 @@
                             </td>
                             <td>
                                 <form asp-action="UpdateCart" method="post">
-                                    <input type="number" name="quantity" value="@item.SoLuong"
+                                    @if (item.Combo != null)
+                                    {
+                                    <input type="number" name="quantityCombo" value="@item.SoLuongCombo"
                                            min="1"
-                                           max="@(item.Combo?.Quantity ?? item.Sach?.SoLuong ?? 0)"
+                                           max="@(item.Combo?.Quantity ??  0)"
                                            class="form-control w-auto d-inline"
-                                           oninput="checkAndSetMaxQuantity(this)" />
-
+                                        oninput="checkAndSetMaxQuantity(this)" />
+                                    }
+                                    else
+                                    {
+                                        <input type="number" name="quantitySach" value="@item.SoLuongSach"
+                                               min="1"
+                                               max="@(item.Sach?.SoLuong?? 0)"
+                                               class="form-control w-auto d-inline"
+                                               oninput="checkAndSetMaxQuantity(this)" />
+                                    }
                                     @if (item.Combo != null)
                                     {
                                         <!-- Nếu là Combo, truyền ComboId -->
@@ -81,7 +91,17 @@
                             </td>
 
                             <td>@item.DonGia.ToString("C")</td>
-                            <td>@((item.SoLuong * item.DonGia).ToString("C"))</td>
+                            <td>
+                                @if (item.Combo != null)
+                                {
+                                    @(((decimal)item.SoLuongCombo * item.Combo.Gia).ToString("C"))
+                                }
+                                else
+                                {
+                                    @(((decimal)item.SoLuongSach * item.DonGia).ToString("C"))
+                                }
+                            </td>
+
                             <td>
                                 <form asp-action="RemoveFromCart" method="post">
                                     @if (item.Combo != null)

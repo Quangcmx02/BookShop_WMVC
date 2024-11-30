@@ -44,7 +44,7 @@ namespace asm_c4.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateCart(int id, int quantity, bool isCombo = false)
+        public IActionResult UpdateCart(int id, int quantityCombo,int quantitySach, bool isCombo = false)
         {
             var userSession = HttpContext.Session.GetString("UserSession");
             if (string.IsNullOrEmpty(userSession))
@@ -86,7 +86,7 @@ namespace asm_c4.Controllers
                 return RedirectToAction("Index");
             }
 
-            if (quantity > 0)
+            if (quantitySach > 0|| quantityCombo>0)
             {
                 if (isCombo)
                 {
@@ -94,12 +94,12 @@ namespace asm_c4.Controllers
                     var combo = _context.Combos.FirstOrDefault(c => c.ComboId == id);
                     if (combo != null)
                     {
-                        if (quantity > (combo.Quantity ?? 0))
+                        if (quantityCombo > (combo.Quantity ?? 0))
                         {
-                            quantity = combo.Quantity ?? 0;
+                            quantityCombo = combo.Quantity ?? 0;
                             ViewBag.ErrorMessage = "Số lượng yêu cầu vượt quá số lượng combo có sẵn.";
                         }
-                        cartItem.SoLuong = quantity;
+                        cartItem.SoLuongSach = quantityCombo;
                     }
                 }
                 else
@@ -108,12 +108,12 @@ namespace asm_c4.Controllers
                     var product = _context.Saches.FirstOrDefault(p => p.SachId == id);
                     if (product != null)
                     {
-                        if (quantity > product.SoLuong)
+                        if (quantitySach > product.SoLuong)
                         {
-                            quantity = product.SoLuong;
+                            quantitySach = product.SoLuong;
                             ViewBag.ErrorMessage = "Số lượng yêu cầu vượt quá số lượng có sẵn.";
                         }
-                        cartItem.SoLuong = quantity;
+                        cartItem.SoLuongSach = quantitySach;
                     }
                 }
             }

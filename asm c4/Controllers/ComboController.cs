@@ -116,19 +116,20 @@ namespace asm_c4.Controllers
             var existingItem = _context.GioHangChiTiets
                 .FirstOrDefault(g => g.GioHangId == gioHang.GioHangId && g.ComboId == combo.ComboId);
 
-            int totalQuantity = existingItem != null ? existingItem.SoLuong + quantity : quantity;
+            int totalQuantity = existingItem != null ? (existingItem.SoLuongCombo ?? 0) + quantity : quantity;
+
 
             // Kiểm tra số lượng combo nếu có giới hạn
             if (combo.Quantity.HasValue && totalQuantity > combo.Quantity.Value)
             {
-                ViewBag.ErrorMessage = $"Bạn chỉ có thể thêm tối đa {combo.Quantity.Value - (existingItem?.SoLuong ?? 0)} combo nữa.";
+                ViewBag.ErrorMessage = $"Bạn chỉ có thể thêm tối đa {combo.Quantity.Value - (existingItem?.SoLuongCombo ?? 0)} combo nữa.";
                 return RedirectToAction("Index", "Cart"); // Chuyển hướng đến trang giỏ hàng với thông báo lỗi
             }
 
             if (existingItem != null)
             {
                 // Nếu combo đã tồn tại, cập nhật số lượng
-                existingItem.SoLuong = totalQuantity;
+                existingItem.SoLuongCombo = totalQuantity;
             }
             else
             {
@@ -137,7 +138,7 @@ namespace asm_c4.Controllers
                 {
                     GioHangId = gioHang.GioHangId,
                     ComboId = combo.ComboId,
-                    SoLuong = quantity,
+                    SoLuongCombo = quantity,
                     DonGia = combo.Gia
                 };
 

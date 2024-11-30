@@ -9,13 +9,15 @@ public partial class GioHangChiTiet
 
     public int? SachId { get; set; }
 
-    public int SoLuong { get; set; }
+    public int? SoLuongSach { get; set; }
 
     public decimal DonGia { get; set; }
 
     public int? ComboId { get; set; }
 
     public int GioHangChiTietId { get; set; }
+
+    public int? SoLuongCombo { get; set; }
 
     public virtual Combo? Combo { get; set; }
 

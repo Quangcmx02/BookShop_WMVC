@@ -98,19 +98,20 @@ namespace asm_c4.Controllers
             var existingItem = _context.GioHangChiTiets
                 .FirstOrDefault(g => g.GioHangId == gioHang.GioHangId && g.SachId == product.SachId);
 
-            int totalQuantity = existingItem != null ? existingItem.SoLuong + quantity : quantity;
+            int totalQuantity = existingItem != null ? (existingItem.SoLuongSach ?? 0) + quantity : quantity;
+
 
             // Kiểm tra xem tổng số lượng có vượt quá số lượng trong kho không
             if (totalQuantity > product.SoLuong)
             {
-                ViewBag.ErrorMessage = $"Bạn chỉ có thể thêm tối đa {product.SoLuong - (existingItem?.SoLuong ?? 0)} sản phẩm nữa.";
+                ViewBag.ErrorMessage = $"Bạn chỉ có thể thêm tối đa {product.SoLuong - (existingItem?.SoLuongSach ?? 0)} sản phẩm nữa.";
                 return RedirectToAction("Index", "Cart"); // Chuyển hướng đến trang giỏ hàng với thông báo lỗi
             }
 
             if (existingItem != null)
             {
                 // Nếu sản phẩm đã có trong giỏ hàng, cập nhật số lượng
-                existingItem.SoLuong = totalQuantity;
+                existingItem.SoLuongSach = totalQuantity;
             }
             else
             {
@@ -119,7 +120,7 @@ namespace asm_c4.Controllers
                 {
                     GioHangId = gioHang.GioHangId,
                     SachId = product.SachId,
-                    SoLuong = quantity,
+                    SoLuongSach = quantity,
                     DonGia = product.GiaTien
                 };
 
