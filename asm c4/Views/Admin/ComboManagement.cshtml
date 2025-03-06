@@ -1,0 +1,50 @@
+﻿@model IEnumerable<asm_c4.Models.Combo>
+
+@{
+    ViewData["Title"] = "Combo Management";
+}
+@{
+    Layout = "_AdminLayout";
+}
+<h1>Combo Management</h1>
+
+<a asp-action="CreateCombo" class="btn btn-primary">Thêm Combo</a>
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên Combo</th>
+            <th>Giá</th>
+            <th>Số lượng</th>
+            <th>Trạng thái</th>
+            <th>Hình ảnh</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var combo in Model)
+        {
+            <tr>
+                <td>@combo.ComboId</td>
+                <td>@combo.TenCombo</td>
+                <td>@combo.Gia.ToString("C")</td>
+                <td>@combo.Quantity</td>
+                <td>@(combo.TrangThai ? "Đang hoạt động" : "Ngừng hoạt động")</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(combo.LinkImages))
+                    {
+                        <img src="@combo.LinkImages" alt="@combo.TenCombo" style="width: 100px; height: auto;" />
+                    }
+                </td>
+                <td>
+                    <a asp-action="EditCombo" asp-route-id="@combo.ComboId" class="btn btn-warning">Sửa</a>
+                    <a asp-action="DeleteCombo" asp-route-id="@combo.ComboId" class="btn btn-danger">Xóa</a>
+                    <a asp-action="ComboDetails" asp-route-id="@combo.ComboId" class="btn btn-info">
+                        Chi tiết combo
+                    </a>
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>

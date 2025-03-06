@@ -48,7 +48,7 @@ namespace asm_c4.Controllers
             {
                 return RedirectToAction("Login", "Account");
             }
-            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs, "DanhMucId", "DanhMucId");
+            ViewData["TenDanhMuc"] = new SelectList(_context.DanhMucs, "TenDanhMuc", "TenDanhMuc");
             return View();
         }
 
@@ -67,7 +67,7 @@ namespace asm_c4.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction("BookManagement");
             }
-            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs, "DanhMucId", "DanhMucId", sach.DanhMucId);
+            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs, "TenDanhMuc", "TenDanhMuc", sach.DanhMuc.TenDanhMuc);
             return View(sach);
         }
 
@@ -91,7 +91,7 @@ namespace asm_c4.Controllers
         new { Value = "true", Text = "Đang kinh doanh" },
         new { Value = "false", Text = "Ngừng kinh doanh" }
     }, "Value", "Text", sach.TrangThai);
-            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs, "DanhMucId", "DanhMucId", sach.DanhMucId);
+            ViewData["TenDanhMuc"] = new SelectList(_context.DanhMucs, "TenDanhMuc", "TenDanhMuc");
             return View(sach);
         }
 
@@ -114,7 +114,7 @@ namespace asm_c4.Controllers
                 }
             }
 
-            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs, "DanhMucId", "DanhMucId", sach.DanhMucId);
+            ViewData["DanhMucId"] = new SelectList(_context.DanhMucs, "TenDanhMuc", "TenDanhMuc", sach.DanhMuc.TenDanhMuc);
             return View(sach);
         }
 
@@ -355,12 +355,14 @@ namespace asm_c4.Controllers
             // Lấy tất cả đơn hàng từ cơ sở dữ liệu, bao gồm cả chi tiết đơn hàng
             var orders = _context.DonHangs
                                  .Include(d => d.DonHangChiTiets)
-                                 .ThenInclude(d => d.Sach)  // Bao gồm sách trong chi tiết đơn hàng
-                                 .Include(d => d.User)      // Bao gồm thông tin người dùng
+                                     .ThenInclude(d => d.Sach) // Bao gồm sách trong chi tiết đơn hàng
+                                 .Include(d => d.User)       // Bao gồm thông tin người dùng
+                                 .OrderByDescending(d => d.NgayDat) // Sắp xếp theo ngày đặt mới nhất
                                  .ToList();
 
             return View(orders);
         }
+
         public IActionResult ViewOrder(int id)
         {
             if (!IsAdmin())
@@ -371,6 +373,8 @@ namespace asm_c4.Controllers
             var order = _context.DonHangs
                                 .Include(d => d.DonHangChiTiets)
                                 .ThenInclude(d => d.Sach)  // Bao gồm sách trong chi tiết đơn hàng
+                                .Include(d => d.DonHangChiTiets)
+                                .ThenInclude(d => d.Combo) // Bao g?m combo trong chi ti?t don h?ng
                                 .FirstOrDefault(d => d.DonHangId == id);
 
             if (order == null)
@@ -380,11 +384,287 @@ namespace asm_c4.Controllers
 
             return View(order);
         }
+        [HttpPost]
+        public IActionResult UpdateOrderStatus(int orderId, string newStatus)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var order = _context.DonHangs.FirstOrDefault(o => o.DonHangId == orderId);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Cập nhật trạng thái đơn hàng
+            order.TrangThai = newStatus;
+            _context.SaveChanges();
+
+            TempData["Message"] = "Cập nhật trạng thái thành công!";
+            return RedirectToAction("ViewOrder", new { id = orderId });
+        }
+
         public IActionResult Dashboard()
         {
             return View();
         }
+        public async Task<IActionResult> ComboManagement()
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var combos = await _context.Combos.Include(c => c.ComboBooks).ToListAsync();
+            return View(combos);
+        }
+
+        [HttpGet]
+        public IActionResult CreateCombo()
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCombo([Bind("TenCombo,MoTa,Gia,TrangThai,LinkImages,Quantity")] Combo combo)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (ModelState.IsValid)
+            {
+                _context.Combos.Add(combo);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(ComboManagement));
+            }
+            return View(combo);
+        }
+
+        [HttpGet]
+        public IActionResult EditCombo(int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var combo = _context.Combos.Find(id);
+            if (combo == null)
+            {
+                return NotFound();
+            }
+            return View(combo);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditCombo(int id, [Bind("ComboId,TenCombo,MoTa,Gia,TrangThai,LinkImages,Quantity")] Combo combo)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (id != combo.ComboId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(combo);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(ComboManagement));
+                }
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError("", "Không thể cập nhật combo: " + ex.Message);
+                }
+            }
+            return View(combo);
+        }
+
+        [HttpGet]
+        public IActionResult DeleteCombo(int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var combo = _context.Combos.Find(id);
+            if (combo == null)
+            {
+                return NotFound();
+            }
+
+            _context.Combos.Remove(combo);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(ComboManagement));
+        }
+        public IActionResult ComboDetails(int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var combo = _context.Combos
+                .Where(c => c.ComboId == id && c.TrangThai)
+                .Select(c => new
+                {
+                    ComboId = c.ComboId,
+                    TenCombo = c.TenCombo,
+                    MoTa = c.MoTa,
+                    GiaTien = c.Gia,
+                    Books = c.ComboBooks.Select(cb => new
+                    {
+                        SachId = cb.Sach.SachId,
+                        TenSach = cb.Sach.TenSach,
+                        MoTa = cb.Sach.MoTa,
+                        HinhAnh = cb.Sach.HinhAnh,
+                        GiaTien = cb.Sach.GiaTien,
+                        TrangThai = cb.Sach.TrangThai,
+                        DanhMuc = cb.Sach.DanhMuc.TenDanhMuc, // Tên danh mục
+                        QuantityInCombo = cb.ComboBookDetails
+                            .Where(cbd => cbd.ComboBooksId == cb.ComboBooksId)
+                            .Select(cbd => cbd.QuantityBookInCombo)
+                            .FirstOrDefault() // Số lượng sách trong combo
+                    })
+                })
+                .FirstOrDefault();
+
+            if (combo == null)
+            {
+                return NotFound();
+            }
+
+            return View(combo);
+        }
+
+        [HttpPost]
+        public IActionResult CapNhatSoLuong(int comboId, int sachId, int soLuongMoi)
+        {
+
+            var comboBookDetail = _context.ComboBookDetails
+                .FirstOrDefault(cbd => cbd.ComboBooks.ComboId == comboId && cbd.ComboBooks.SachId == sachId);
+
+            if (comboBookDetail == null)
+            {
+                return NotFound();
+            }
+
+            comboBookDetail.QuantityBookInCombo = soLuongMoi;
+            _context.SaveChanges();
+
+            return RedirectToAction("ComboDetails", new { id = comboId });
+        }
+        [HttpPost]
+        public IActionResult XoaSachTrongCombo(int comboId, int sachId)
+        {
+            var comboBook = _context.ComboBooks
+                .FirstOrDefault(cb => cb.ComboId == comboId && cb.SachId == sachId);
+
+            if (comboBook == null)
+            {
+                return NotFound();
+            }
+
+            _context.ComboBooks.Remove(comboBook);
+            _context.SaveChanges();
+
+            return RedirectToAction("ComboDetails", new { id = comboId });
+        }
+        public IActionResult ThemSachVaoCombo(int comboId)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var combo = _context.Combos.FirstOrDefault(c => c.ComboId == comboId);
+            if (combo == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy danh sách sách chưa có trong combo
+            var sachChuaCo = _context.Saches
+                .Where(s => !_context.ComboBooks.Any(cb => cb.ComboId == comboId && cb.SachId == s.SachId))
+                .Select(s => new
+                {
+                    SachId = s.SachId,
+                    TenSach = s.TenSach
+                })
+                .ToList();
+
+            ViewBag.ComboId = comboId;
+            return View(sachChuaCo);
+        }
+        [HttpPost]
+        public IActionResult ThemSachVaoCombo(int comboId, int sachId, int soLuong)
+        {
+            var combo = _context.Combos.FirstOrDefault(c => c.ComboId == comboId);
+            if (combo == null)
+            {
+                return NotFound();
+            }
+
+            // Thêm sách vào combo
+            var comboBook = new ComboBook
+            {
+                ComboId = comboId,
+                SachId = sachId
+            };
+
+            _context.ComboBooks.Add(comboBook);
+            _context.SaveChanges();
+
+            // Thêm số lượng sách vào chi tiết combo
+            var comboBookDetail = new ComboBookDetail
+            {
+                ComboBooksId = comboBook.ComboBooksId,
+                QuantityBookInCombo = soLuong
+            };
+
+            _context.ComboBookDetails.Add(comboBookDetail);
+            _context.SaveChanges();
+
+            return RedirectToAction("ComboDetails", new { id = comboId });
+        }
+        public IActionResult OrderStatistics()
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            // Lấy tất cả các đơn hàng từ cơ sở dữ liệu
+            var orders = _context.DonHangs.ToList();
+
+            // Tạo thống kê đơn hàng theo tháng
+            var orderStats = orders
+                .GroupBy(o => o.NgayDat.Day)
+                .Select(g => new
+                {
+                    Day = g.Key,
+                    TotalAmount = g.Sum(o => o.TongTien)
+                })
+                .OrderBy(o => o.Day)
+                .ToList();
+
+            // Truyền dữ liệu thống kê vào View
+            return View(orderStats);
+        }
+
+
+
     }
-
-
 }

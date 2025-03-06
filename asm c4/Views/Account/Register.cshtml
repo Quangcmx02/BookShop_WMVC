@@ -46,11 +46,27 @@
 
 <script>
     function validateForm() {
+        let username = document.getElementById("username").value;
         let email = document.getElementById("email").value;
         let phone = document.getElementById("phone").value;
+        let password = document.getElementById("password").value;
+        let confirmPassword = document.getElementById("confirmPassword").value;
+
+        // Kiểm tra độ dài
+        const minLength = 6;
+        if (
+            username.length < minLength ||
+            email.length < minLength ||
+            phone.length < minLength ||
+            password.length < minLength ||
+            confirmPassword.length < minLength
+        ) {
+            alert("Tên đăng nhập và mật khẩu phải trên 6 ký tự!");
+            return false;
+        }
 
         // Validate email
-        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/; 
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
         const isValidEmail = emailRegex.test(email);
         document.getElementById("emailError").classList.toggle("d-none", isValidEmail);
 
@@ -59,9 +75,16 @@
         const isValidPhone = phoneRegex.test(phone);
         document.getElementById("phoneError").classList.toggle("d-none", isValidPhone);
 
-        // Return false if validation fails
+        // Kiểm tra mật khẩu
+        if (password !== confirmPassword) {
+            alert("Mật khẩu và xác nhận mật khẩu không khớp!");
+            return false;
+        }
+
+        // Trả về false nếu bất kỳ kiểm tra nào không thành công
         return isValidEmail && isValidPhone;
     }
+
 </script>
 
 

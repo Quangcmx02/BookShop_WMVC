@@ -90,7 +90,6 @@ namespace asm_c4.Controllers
             {
                 if (isCombo)
                 {
-                    // Cập nhật số lượng combo
                     var combo = _context.Combos.FirstOrDefault(c => c.ComboId == id);
                     if (combo != null)
                     {
@@ -99,12 +98,11 @@ namespace asm_c4.Controllers
                             quantityCombo = combo.Quantity ?? 0;
                             ViewBag.ErrorMessage = "Số lượng yêu cầu vượt quá số lượng combo có sẵn.";
                         }
-                        cartItem.SoLuongSach = quantityCombo;
+                        cartItem.SoLuongCombo = quantityCombo; // Đúng thuộc tính
                     }
                 }
                 else
                 {
-                    // Cập nhật số lượng sách
                     var product = _context.Saches.FirstOrDefault(p => p.SachId == id);
                     if (product != null)
                     {
@@ -116,6 +114,7 @@ namespace asm_c4.Controllers
                         cartItem.SoLuongSach = quantitySach;
                     }
                 }
+
             }
             else
             {
@@ -183,115 +182,173 @@ namespace asm_c4.Controllers
             ViewBag.SuccessMessage = "Sản phẩm đã được xóa khỏi giỏ hàng.";
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        [HttpPost]
+        public IActionResult PlaceOrder(List<int> selectedItems, List<int> selectedComboItems)
+        {
+            var userSession = HttpContext.Session.GetString("UserSession");
+            if (string.IsNullOrEmpty(userSession))
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
-        //[HttpPost]
-        //public IActionResult PlaceOrder(List<int> selectedItems)
-        //{
-        //    var userSession = HttpContext.Session.GetString("UserSession");
-        //    if (string.IsNullOrEmpty(userSession))
-        //    {
-        //        return RedirectToAction("Login", "Account");
-        //    }
+            var currentUser = JsonConvert.DeserializeObject<User>(userSession);
+            int userId = currentUser.UserId;
 
-        //    var currentUser = JsonConvert.DeserializeObject<User>(userSession);
-        //    int userId = currentUser.UserId;
+            var cart = _context.GioHangs
+                .Where(gh => gh.UserId == userId)
+                .Select(gh => new
+                {
+                    GioHangId = gh.GioHangId,
+                    CartItems = gh.GioHangChiTiets.Select(ghct => new
+                    {
+                        ghct.GioHangChiTietId,
+                        ghct.SachId,
+                        ghct.SoLuongSach,
+                        ghct.ComboId,
+                        ghct.SoLuongCombo,
+                        ghct.DonGia
+                    }).ToList()
+                })
+                .FirstOrDefault();
 
-        //    var cart = _context.GioHangs
-        //   .Where(gh => gh.UserId == userId)
-        //   .Select(gh => new
-        //   {
-        //       GioHangId = gh.GioHangId,
-        //       User = gh.User,
-        //       CartItems = gh.GioHangChiTiets.Select(ghct => new
-        //       {
-        //           GioHangChiTietId = ghct.GioHangChiTietId,
-        //           Sach = ghct.Sach != null ? new
-        //           {
-        //               SachId = ghct.Sach.SachId,
-        //               TenSach = ghct.Sach.TenSach,
-        //               GiaTien = ghct.Sach.GiaTien,
-        //               MoTa = ghct.Sach.MoTa,
-        //               HinhAnh = ghct.Sach.HinhAnh
-        //           } : null,
-        //           Combo = ghct.Combo != null ? new
-        //           {
-        //               ComboId = ghct.Combo.ComboId,
-        //               TenCombo = ghct.Combo.TenCombo,
-        //               Gia = ghct.Combo.Gia,
-        //               MoTa = ghct.Combo.MoTa,
-        //               LinkImages = ghct.Combo.LinkImages,
-        //               ComboBooks = ghct.Combo.ComboBooks.Select(cb => new
-        //               {
-        //                   ComboBooksId = cb.ComboBooksId,
-        //                   SachId = cb.Sach.SachId,
-        //                   TenSach = cb.Sach.TenSach,
-        //                   QuantityBookInCombo = cb.ComboBookDetails.FirstOrDefault().QuantityBookInCombo
-        //               })
-        //           } : null,
-        //           SoLuong = ghct.SoLuong,
-        //           DonGia = ghct.DonGia
-        //       })
-        //   })
-        //   .FirstOrDefault();
+            if (cart == null || (selectedItems == null && selectedComboItems == null) ||
+                (!selectedItems.Any() && !selectedComboItems.Any()))
+            {
+                ViewBag.ErrorMessage = "Vui lòng chọn ít nhất một sản phẩm để đặt hàng.";
+                return RedirectToAction("Index");
+            }
 
-        //    if (cart == null || selectedItems == null || !selectedItems.Any())
-        //    {
-        //        ViewBag.ErrorMessage = "Vui lòng chọn ít nhất một sản phẩm để đặt hàng.";
-        //        return RedirectToAction("Index");
-        //    }
+            // Tính tổng tiền và tạo danh sách chi tiết đơn hàng
+            decimal totalAmount = 0;
+            var orderDetails = new List<DonHangChiTiet>();
 
-        //    // Tính tổng tiền cho đơn hàng
-        //    decimal totalAmount = 0;
-        //    var orderDetails = new List<DonHangChiTiet>();
+            // Xử lý sách được chọn
+            foreach (var itemId in selectedItems)
+            {
+                var cartItem = cart.CartItems.FirstOrDefault(ci =>
+                    ci.SachId.HasValue && ci.SachId.Value == itemId);
 
-        //    foreach (var item in cart.GioHangChiTiets.Where(c => c.SachId.HasValue && selectedItems.Contains(c.SachId.Value)))
-        //    {
-        //        var product = _context.Saches.FirstOrDefault(p => p.SachId == item.SachId);
-        //        if (product != null)
-        //        {
-        //            decimal itemTotal = item.SoLuong * item.DonGia;
-        //            totalAmount += itemTotal;
+                if (cartItem != null)
+                {
+                    var book = _context.Saches.FirstOrDefault(s => s.SachId == cartItem.SachId);
+                    if (book != null)
+                    {
+                        decimal itemTotal = cartItem.SoLuongSach.Value * cartItem.DonGia;
+                        totalAmount += itemTotal;
 
-        //            // Thêm chi tiết đơn hàng
-        //            orderDetails.Add(new DonHangChiTiet
-        //            {
-        //                SachId = item.SachId.Value, // Đảm bảo SachId có giá trị
-        //                SoLuong = item.SoLuong,
-        //                DonGia = item.DonGia,
-        //                ThanhTien = itemTotal
-        //            });
+                        orderDetails.Add(new DonHangChiTiet
+                        {
+                            SachId = cartItem.SachId,
+                            SoLuongSach = cartItem.SoLuongSach,
+                            DonGia = cartItem.DonGia,
+                            ThanhTien = itemTotal
+                        });
 
-        //            // Cập nhật số lượng sản phẩm trong kho
-        //            product.SoLuong -= item.SoLuong; // Giảm số lượng sản phẩm trong kho
-        //            _context.Saches.Update(product); // Cập nhật vào cơ sở dữ liệu
-        //        }
-        //    }
+                        // Cập nhật số lượng sách trong kho
+                        book.SoLuong -= cartItem.SoLuongSach.Value;
+                        _context.Saches.Update(book);
+                    }
+                }
+            }
 
-        //    // Tạo đơn hàng mới
-        //    var order = new DonHang
-        //    {
-        //        UserId = userId,
-        //        NgayDat = DateTime.Now,
-        //        TongTien = totalAmount,
-        //        TrangThai = "Chờ xác nhận", // Bạn có thể thay đổi trạng thái tùy theo yêu cầu
-        //        DonHangChiTiets = orderDetails
-        //    };
+            // Xử lý combo được chọn
+            // Xử lý combo được chọn
+            foreach (var itemId in selectedComboItems)
+            {
+                var cartItem = cart.CartItems.FirstOrDefault(ci =>
+                    ci.ComboId.HasValue && ci.ComboId.Value == itemId);
 
-        //    // Lưu đơn hàng và các chi tiết
-        //    _context.DonHangs.Add(order);
-        //    _context.SaveChanges();
+                if (cartItem != null)
+                {
+                    var combo = _context.Combos.FirstOrDefault(c => c.ComboId == cartItem.ComboId);
+                    if (combo != null)
+                    {
+                        decimal itemTotal = cartItem.SoLuongCombo.Value * cartItem.DonGia;
+                        totalAmount += itemTotal;
 
-        //    // Xóa các sản phẩm đã đặt từ giỏ hàng
-        //    foreach (var item in cart.GioHangChiTiets.Where(c => c.SachId.HasValue && selectedItems.Contains(c.SachId.Value)).ToList())
-        //    {
-        //        _context.GioHangChiTiets.Remove(item);
-        //    }
+                        orderDetails.Add(new DonHangChiTiet
+                        {
+                            ComboId = cartItem.ComboId,
+                            SoLuongCombo = cartItem.SoLuongCombo,
+                            DonGia = cartItem.DonGia,
+                            ThanhTien = itemTotal
+                        });
 
-        //    _context.SaveChanges();
+                        // Cập nhật số lượng combo
+                        combo.Quantity -= cartItem.SoLuongCombo.Value;
+                        _context.Combos.Update(combo);
 
-        //    // Chuyển hướng tới trang thông báo đã đặt hàng thành công
-        //    return RedirectToAction("OrderConfirmation");
-        //}
+                        // Lấy danh sách sách trong combo
+                        var comboBooks = _context.ComboBooks
+                            .Where(cb => cb.ComboId == cartItem.ComboId)
+                            .ToList();
+
+                        foreach (var comboBook in comboBooks)
+                        {
+                            // Lấy chi tiết combo (QuantityBookInCombo)
+                            var comboBookDetail = _context.ComboBookDetails
+                                .FirstOrDefault(cbd => cbd.ComboBooksId == comboBook.ComboBooksId);
+
+                            if (comboBookDetail != null)
+                            {
+                                var book = _context.Saches.FirstOrDefault(s => s.SachId == comboBook.SachId);
+                                if (book != null)
+                                {
+                                    // Trừ số lượng sách
+                                    int totalBooksToSubtract = cartItem.SoLuongCombo.Value * comboBookDetail.QuantityBookInCombo;
+                                    book.SoLuong -= totalBooksToSubtract;
+
+                                    if (book.SoLuong < 0)
+                                    {
+                                        // Xử lý nếu sách không đủ số lượng
+                                        ViewBag.ErrorMessage = $"Không đủ sách {book.TenSach} để đặt hàng combo.";
+                                        return RedirectToAction("Index");
+                                    }
+
+                                    _context.Saches.Update(book);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            // Tạo đơn hàng mới
+            var order = new DonHang
+            {
+                UserId = userId,
+                NgayDat = DateTime.Now,
+                TongTien = totalAmount,
+                TrangThai = "Chờ xác nhận",
+                DonHangChiTiets = orderDetails
+            };
+
+            _context.DonHangs.Add(order);
+
+            // Xóa các sản phẩm đã đặt từ giỏ hàng
+            foreach (var itemId in selectedItems.Concat(selectedComboItems))
+            {
+                var cartItem = cart.CartItems.FirstOrDefault(ci =>
+                    (ci.SachId.HasValue && ci.SachId.Value == itemId) ||
+                    (ci.ComboId.HasValue && ci.ComboId.Value == itemId));
+
+                if (cartItem != null)
+                {
+                    _context.GioHangChiTiets.Remove(
+                        _context.GioHangChiTiets.FirstOrDefault(ghct => ghct.GioHangChiTietId == cartItem.GioHangChiTietId)
+                    );
+                }
+            }
+
+            _context.SaveChanges();
+
+            // Chuyển hướng tới trang thông báo đã đặt hàng thành công
+            return RedirectToAction("OrderConfirmation");
+        }
+
+
 
 
 

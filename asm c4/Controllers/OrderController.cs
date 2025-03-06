@@ -27,18 +27,20 @@ namespace asm_c4.Controllers
                 return RedirectToAction("Login", "Account"); // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
             }
 
-            // Deserialize người dùng từ session
             var currentUser = JsonConvert.DeserializeObject<User>(userSession);
 
-            // Lấy danh sách đơn hàng của người dùng từ cơ sở dữ liệu
             var orders = _context.DonHangs
                 .Where(o => o.UserId == currentUser.UserId)
-                .Include(o => o.DonHangChiTiets) // Lấy thông tin chi tiết đơn hàng
-                .ThenInclude(od => od.Sach) // Lấy thông tin sản phẩm của đơn hàng
+                .Include(o => o.DonHangChiTiets)
+
+                .ThenInclude(od => od.Sach)
+                .Include(o => o.DonHangChiTiets)
+                .ThenInclude(od => od.Combo) // Bao gồm combo nếu có
+                  .OrderByDescending(d => d.NgayDat)
                 .ToList();
 
-            // Trả về view và truyền danh sách đơn hàng cho view
             return View(orders);
         }
+
     }
 }

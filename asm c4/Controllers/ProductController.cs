@@ -26,7 +26,13 @@ namespace asm_c4.Controllers
 
             if (!string.IsNullOrEmpty(searchQuery))
             {
-                products = products.Where(s => s.TenSach.Contains(searchQuery));
+                // Tìm kiếm theo tên sách, giá tiền, hoặc tên danh mục
+                products = products.Where(s =>
+                    s.TenSach.Contains(searchQuery) || // Tìm theo tên sách
+                    s.GiaTien.ToString().Contains(searchQuery) || // Tìm theo giá (chuỗi)
+                    (s.DanhMuc != null && s.DanhMuc.TenDanhMuc.Contains(searchQuery)) // Tìm theo tên danh mục
+                );
+
                 ViewBag.SearchQuery = searchQuery;
             }
 
@@ -48,6 +54,7 @@ namespace asm_c4.Controllers
 
             return View(products.ToPagedList(pageNumber, pageSize));
         }
+
 
         // Hiển thị chi tiết sách
         public IActionResult Details(int id)

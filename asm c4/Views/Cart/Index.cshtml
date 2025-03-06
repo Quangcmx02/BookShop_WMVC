@@ -32,7 +32,14 @@
                     {
                         <tr>
                             <td>
-                                <input type="checkbox" name="selectedItems" value="@item.SachId" />
+                                @if (item.SachId.HasValue)
+                                {
+                                    <input onchange="calculateTotal" type="checkbox" name="selectedItems" value="@item.SachId" />
+                                }
+                                @if (item.ComboId.HasValue)
+                                {
+                                    <input onchange="calculateTotal" type="checkbox" name="selectedComboItems" value="@item.ComboId" />
+                                }
                             </td>
                             <td>
                                 @if (item.Combo != null)
@@ -135,6 +142,12 @@
         }
     </form>
 </div>
+<div id="totalAmount" class="text-right font-weight-bold mt-3">Tổng tiền: 0 VND</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
 <!-- Thêm CSS tùy chỉnh nếu cần -->
 <style>
@@ -175,4 +188,31 @@
             alert(`Số lượng tối đa của sản phẩm này là ${max}`);
         }
     }
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxes = document.querySelectorAll("input[type='checkbox'][name='selectedItems'], input[type='checkbox'][name='selectedComboItems']");
+        const rows = document.querySelectorAll("tbody tr");
+        const totalAmountDisplay = document.getElementById("totalAmount");
+
+        function calculateTotal() {
+            let totalUSD = 0;
+
+            checkboxes.forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    const row = rows[index];
+                    const totalCell = row.querySelector("td:nth-child(5)");
+                    const value = parseFloat(totalCell.textContent.replace(/[^0-9.-]+/g, "")); // Loại bỏ ký tự không phải số
+                    totalUSD += isNaN(value) ? 0 : value;
+                }
+            });
+
+            totalAmountDisplay.textContent = `Tổng tiền: ${totalUSD.toLocaleString("en-US", { style: "currency", currency: "USD" })}`;
+        }
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", calculateTotal);
+        });
+
+        // Tính lại tổng tiền khi trang được tải
+        calculateTotal();
+    });
 </script>

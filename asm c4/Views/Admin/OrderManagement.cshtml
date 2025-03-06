@@ -28,7 +28,7 @@
                 <td>@order.User.Username</td> <!-- Giả sử bạn có thuộc tính FullName trong User -->
                 <td>@order.NgayDat.ToString("dd/MM/yyyy")</td>
                 <td>@order.TongTien.ToString("C")</td>
-                <td>@order.TrangThai</td>
+                <td><span class="badge bg-primary"> @order.TrangThai </span></td>
                 <td>
                     <a href="@Url.Action("ViewOrder", "Admin", new { id = order.DonHangId })" class="btn btn-info">View</a>
                     <!-- Thêm các hành động khác nếu cần -->

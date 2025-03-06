@@ -1,0 +1,58 @@
+﻿@model dynamic
+@{
+    Layout = "_AdminLayout";
+}
+<h2>Chi Tiết Combo</h2>
+<div>
+    <h4>@Model.TenCombo</h4>
+    <p><strong>Mô Tả:</strong> @Model.MoTa</p>
+    <p><strong>Giá Tiền:</strong> @Model.GiaTien</p>
+</div>
+
+<h3>Sách Trong Combo</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Hình Ảnh</th>
+            <th>Tên Sách</th>
+            <th>Mô Tả</th>
+            <th>Danh Mục</th>
+            <th>Giá Tiền</th>
+            <th>Số Lượng</th>
+            <th>Hành Động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in Model.Books)
+        {
+            <tr>
+                <td><img src="@book.HinhAnh" alt="@book.TenSach" style="width: 50px;" /></td>
+                <td>@book.TenSach</td>
+                <td>@book.MoTa</td>
+                <td>@book.DanhMuc</td>
+                <td>@book.GiaTien</td>
+                <td>
+                    <form asp-action="CapNhatSoLuong" method="post" class="d-flex">
+                        <input type="hidden" name="comboId" value="@Model.ComboId" />
+                        <input type="hidden" name="sachId" value="@book.SachId" />
+                        <input type="number" name="soLuongMoi" value="@book.QuantityInCombo" min="1" class="form-control" style="width: 70px;" />
+                        <button type="submit" class="btn btn-primary btn-sm ml-2">Cập nhật</button>
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="XoaSachTrongCombo" method="post">
+                        <input type="hidden" name="comboId" value="@Model.ComboId" />
+                        <input type="hidden" name="sachId" value="@book.SachId" />
+                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+    <div class="mt-3">
+        <a asp-action="ThemSachVaoCombo" asp-route-comboId="@Model.ComboId" class="btn btn-success">
+            Thêm Sách vào Combo
+        </a>
+    </div>
+
+</table>

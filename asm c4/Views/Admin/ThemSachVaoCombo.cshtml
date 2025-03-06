@@ -1,0 +1,31 @@
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = "_AdminLayout";
+}
+@{
+    ViewData["Title"] = "Thêm Sách vào Combo";
+}
+
+<h2>Thêm Sách vào Combo</h2>
+
+<form asp-action="ThemSachVaoCombo" method="post">
+    <input type="hidden" name="comboId" value="@ViewBag.ComboId" />
+
+    <div class="form-group">
+        <label for="sachId">Chọn Sách:</label>
+        <select name="sachId" id="sachId" class="form-control">
+            @foreach (var sach in Model)
+            {
+                <option value="@sach.SachId">@sach.TenSach</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="soLuong">Số Lượng:</label>
+        <input type="number" name="soLuong" id="soLuong" class="form-control" min="1" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Thêm</button>
+    <a asp-action="ComboDetails" asp-route-id="@ViewBag.ComboId" class="btn btn-secondary">Hủy</a>
+</form>

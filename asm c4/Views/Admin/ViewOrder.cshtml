@@ -22,14 +22,68 @@
         @foreach (var detail in Model.DonHangChiTiets)
         {
             <tr>
-                <td>@detail.Sach.TenSach</td>  <!-- Tên sách -->
-                <td>@detail.SoLuongSach</td>        <!-- Số lượng -->
-                <td>@detail.DonGia.ToString("C")</td>  <!-- Đơn giá -->
-                <td>@detail.ThanhTien.ToString("C")</td> <!-- Thành tiền -->
+                <td>
+                    @if (detail.Sach != null)
+                    {
+                        @detail.Sach.TenSach
+                    }
+                    else if (detail.Combo != null)
+                    {
+                       <strong>Combo</strong> @detail.Combo.TenCombo <!-- Hiển thị tên combo -->
+                    }
+                </td>
+       
+                <td>
+                        @if (detail.Sach != null)
+                        {
+                            @detail.SoLuongSach
+                        }
+                        else if (detail.Combo != null)
+                        {
+                            @detail.SoLuongCombo <!-- Hiển thị tên combo -->
+                        }
+
+                </td>                    
+                <td>
+                        @if (detail.Sach != null)
+                        {
+                            @detail.Sach.GiaTien.ToString("C")
+                        }
+                        else if (detail.Combo != null)
+                        {
+                            @detail.Combo.Gia.ToString("C") <!-- Hiển thị tên combo -->
+                        }
+                </td> <!-- Đơn giá -->
+                <td>
+                    @detail.ThanhTien.ToString("C")
+                    </td> <!-- Thành tiền -->
             </tr>
         }
     </tbody>
 </table>
-
 <p><strong>Total Order Amount: </strong>@Model.TongTien.ToString("C")</p>
 <p><strong>Status: </strong>@Model.TrangThai</p>
+<h3 cập nật>Status</h3>
+<form asp-action="UpdateOrderStatus" method="post" class="form-inline">
+    <input type="hidden" name="orderId" value="@Model.DonHangId" />
+    <div class="form-group">
+        <select  name="newStatus" class="form-control">
+             <option value="Chờ xử lý">Chờ xử lý</option>
+            <option value="Đang xử lý" >Đang xử lý</option>
+            <option value="Đã giao hàng" >Đã giao hàng</option>
+            <option value="Hoàn tất" >Hoàn tất</option>
+            <option value="Đã hủy" >Đã hủy</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary ml-2">Cập nhật</button>
+</form>
+
+<a href="@Url.Action("OrderManagement", "Admin")" class="btn btn-secondary mt-3">Back to Orders</a>
+<p><strong>Total Order Amount: </strong>@Model.TongTien.ToString("C")</p>
+<p><strong>Status: </strong>@Model.TrangThai</p>
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Message"]
+    </div>
+}

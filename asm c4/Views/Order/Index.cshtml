@@ -28,25 +28,36 @@
                     <td>
                         @foreach (var detail in order.DonHangChiTiets)
                         {
-                            <p class="mb-1">@detail.Sach.TenSach</p>
+                            @if (detail.Sach != null)
+                            {
+                                <p class="mb-1">@detail.Sach.TenSach</p>
+                            }
+                            else if (detail.Combo != null)
+                            {
+                                <strong>Combo </strong> @detail.Combo.TenCombo
+
+                               <!-- Hiển thị tên combo -->
+                            }
                         }
                     </td>
                     <td>
                         @foreach (var detail in order.DonHangChiTiets)
                         {
-                            <p class="mb-1">@detail.SoLuongSach</p>
+                            @if (detail.Sach != null)
+                            {
+                                <p class="mb-1">@detail.SoLuongSach</p>
+                            }
+                            else if (detail.Combo != null)
+                            {
+                                <p class="mb-1">@detail.SoLuongCombo</p> <!-- Hiển thị tên combo -->
+                            }
                         }
                     </td>
                     <td>@order.TongTien.ToString("C")</td>
                     <td>
-                        @if (order.TrangThai == "Hoàn thành")
-                        {
-                            <span class="badge bg-success">Hoàn thành</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-warning">Chưa hoàn thành</span>
-                        }
+                        <span class="badge bg-primary">
+                            @order.TrangThai</span>
+                      
                     </td>
                 </tr>
             }

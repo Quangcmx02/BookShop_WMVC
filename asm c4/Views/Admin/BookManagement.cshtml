@@ -16,7 +16,7 @@
             <th>Số Lượng</th>
             <th>Trạng Thái</th>
             <th>Hình Ảnh</th> <!-- Cột hình ảnh -->
-            <th>Danh Mục id</th>
+            <th>Danh Mục </th>
             <th>Hành Động</th>
            
         </tr>
@@ -34,7 +34,7 @@
                     <img src="@Url.Content(  item.HinhAnh)" alt="@item.TenSach" style="width: 100px; height: auto;" /> <!-- Hiển thị hình ảnh -->
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.DanhMuc.DanhMucId)
+                    @Html.DisplayFor(modelItem => item.DanhMuc.TenDanhMuc)
                 </td>
                 
                 <td>

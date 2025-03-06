@@ -1,0 +1,64 @@
+﻿@model asm_c4.Models.Combo
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Combo";
+}
+@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Chỉnh sửa Combo</h2>
+
+<form asp-action="EditCombo" method="post">
+    <div class="form-group">
+        <label asp-for="ComboId" class="form-label">ID Combo</label>
+        <input asp-for="ComboId" class="form-control" readonly />
+        <span asp-validation-for="ComboId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TenCombo" class="form-label">Tên Combo</label>
+        <input asp-for="TenCombo" class="form-control" />
+        <span asp-validation-for="TenCombo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="MoTa" class="form-label">Mô tả</label>
+        <textarea asp-for="MoTa" class="form-control"></textarea>
+        <span asp-validation-for="MoTa" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Gia" class="form-label">Giá</label>
+        <input asp-for="Gia" class="form-control" type="number" step="0.01" />
+        <span asp-validation-for="Gia" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TrangThai" class="form-label">Trạng thái</label>
+        <select asp-for="TrangThai" class="form-control">
+            <option value="true">Đang kinh doanh</option>
+            <option value="false">Ngừng kinh doanh</option>
+        </select>
+        <span asp-validation-for="TrangThai" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="LinkImages" class="form-label">Liên kết hình ảnh</label>
+        <input asp-for="LinkImages" class="form-control" />
+        <span asp-validation-for="LinkImages" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Quantity" class="form-label">Số lượng</label>
+        <input asp-for="Quantity" class="form-control" type="number" />
+        <span asp-validation-for="Quantity" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Lưu thay đổi</button>
+    <a asp-action="ComboManagement" class="btn btn-secondary mt-3">Quay lại</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
