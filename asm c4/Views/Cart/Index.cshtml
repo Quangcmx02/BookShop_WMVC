@@ -63,22 +63,22 @@
                                 }
                             </td>
                             <td>
-                                <form asp-action="UpdateCart" method="post">
+                                <form >
                                     @if (item.Combo != null)
                                     {
-                                    <input type="number" name="quantityCombo" value="@item.SoLuongCombo"
-                                           min="1"
-                                           max="@(item.Combo?.Quantity ??  0)"
-                                           class="form-control w-auto d-inline"
-                                        oninput="checkAndSetMaxQuantity(this)" />
+                                        <input type="number" name="quantityCombo" value="@item.SoLuongCombo"
+                                               min="1" max="@(item.Combo?.Quantity ??  0)"
+                                               class="form-control w-auto d-inline"
+                                               oninput="updateCart(@item.Combo.ComboId, this.value, true)">
+
                                     }
                                     else
                                     {
                                         <input type="number" name="quantitySach" value="@item.SoLuongSach"
-                                               min="1"
-                                               max="@(item.Sach?.SoLuong?? 0)"
+                                               min="1" max="@(item.Sach?.SoLuong?? 0)"
                                                class="form-control w-auto d-inline"
-                                               oninput="checkAndSetMaxQuantity(this)" />
+                                               oninput="updateCart(@item.Sach.SachId, this.value, false)">
+
                                     }
                                     @if (item.Combo != null)
                                     {
@@ -214,5 +214,27 @@
 
         // Tính lại tổng tiền khi trang được tải
         calculateTotal();
-    });
+    });  function updateCart(id, quantity, isCombo) {
+        fetch('/Cart/UpdateCart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: id,
+                quantityCombo: isCombo ? quantity : 0,
+                quantitySach: isCombo ? 0 : quantity,
+                isCombo: isCombo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Cập nhật thành công!");
+            } else {
+                alert(data.message || "Có lỗi xảy ra!");
+            }
+        })
+        .catch(error => console.error("Lỗi:", error));
+    }
 </script>

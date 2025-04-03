@@ -640,30 +640,65 @@ namespace asm_c4.Controllers
 
             return RedirectToAction("ComboDetails", new { id = comboId });
         }
-        public IActionResult OrderStatistics()
+        public IActionResult OrderStatistics(string filterType, DateTime? startDate, DateTime? endDate)
         {
             if (!IsAdmin())
             {
                 return RedirectToAction("Login", "Account");
             }
-            // Lấy tất cả các đơn hàng từ cơ sở dữ liệu
-            var orders = _context.DonHangs.ToList();
 
-            // Tạo thống kê đơn hàng theo tháng
+            var orders = _context.DonHangs.AsQueryable();
+
+            // Lọc đơn hàng theo lựa chọn của người dùng
+            switch (filterType)
+            {
+                case "day": // Hôm nay
+                    var today = DateTime.Today;
+                    orders = orders.Where(o => o.NgayDat.Date == today);
+                    break;
+
+                case "week": // Tuần này
+                    var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
+                    orders = orders.Where(o => o.NgayDat >= startOfWeek);
+                    break;
+
+                case "month": // Tháng này
+                    var startOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                    orders = orders.Where(o => o.NgayDat >= startOfMonth);
+                    break;
+
+                case "custom": // Tùy chọn
+                    if (startDate.HasValue && endDate.HasValue)
+                    {
+                        orders = orders.Where(o => o.NgayDat >= startDate.Value && o.NgayDat <= endDate.Value);
+                    }
+                    break;
+            }
+
+            // Chuyển dữ liệu sang List trong bộ nhớ để xử lý
             var orderStats = orders
-                .GroupBy(o => o.NgayDat.Day)
+                .ToList() // Thực thi truy vấn trước
+                .GroupBy(o => o.NgayDat.Date)
                 .Select(g => new
                 {
-                    Day = g.Key,
-                    TotalAmount = g.Sum(o => o.TongTien)
+                    Day = g.Key.ToString("dd/MM/yyyy"),
+                    TotalAmount = g.Sum(o => o.TongTien),  // Tính tổng ngay trong controller
+                    TotalOrders = g.Count()
                 })
                 .OrderBy(o => o.Day)
                 .ToList();
 
-            // Truyền dữ liệu thống kê vào View
+            // Tính tổng doanh thu (TotalAmount) trong controller
+            decimal totalRevenue = orderStats.Sum(o => o.TotalAmount);
+
+            // Gửi dữ liệu vào view
+            ViewBag.FilterType = filterType;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.TotalRevenue = totalRevenue;  // Chuyển tổng doanh thu vào ViewBag
+
             return View(orderStats);
         }
-
 
 
     }

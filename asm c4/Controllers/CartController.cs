@@ -44,18 +44,17 @@ namespace asm_c4.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateCart(int id, int quantityCombo,int quantitySach, bool isCombo = false)
+        public IActionResult UpdateCart([FromBody] UpdateCartRequest request)
         {
             var userSession = HttpContext.Session.GetString("UserSession");
             if (string.IsNullOrEmpty(userSession))
             {
-                return RedirectToAction("Login", "Account");
+                return Json(new { success = false, message = "Bạn chưa đăng nhập!" });
             }
 
             var currentUser = JsonConvert.DeserializeObject<User>(userSession);
             int userId = currentUser.UserId;
 
-            // Lấy giỏ hàng của người dùng hiện tại
             var cart = _context.GioHangs
                 .Include(g => g.GioHangChiTiets)
                     .ThenInclude(g => g.Sach)
@@ -65,69 +64,69 @@ namespace asm_c4.Controllers
 
             if (cart == null)
             {
-                ViewBag.ErrorMessage = "Giỏ hàng không tồn tại.";
-                return RedirectToAction("Index");
+                return Json(new { success = false, message = "Giỏ hàng không tồn tại." });
             }
 
-            // Tìm mục giỏ hàng cần cập nhật
             GioHangChiTiet? cartItem;
-            if (isCombo)
+            if (request.IsCombo)
             {
-                cartItem = cart.GioHangChiTiets.FirstOrDefault(c => c.ComboId == id);
+                cartItem = cart.GioHangChiTiets.FirstOrDefault(c => c.ComboId == request.Id);
             }
             else
             {
-                cartItem = cart.GioHangChiTiets.FirstOrDefault(c => c.SachId == id);
+                cartItem = cart.GioHangChiTiets.FirstOrDefault(c => c.SachId == request.Id);
             }
 
             if (cartItem == null)
             {
-                ViewBag.ErrorMessage = "Không tìm thấy mục cần cập nhật trong giỏ hàng.";
-                return RedirectToAction("Index");
+                return Json(new { success = false, message = "Không tìm thấy sản phẩm trong giỏ hàng." });
             }
 
-            if (quantitySach > 0|| quantityCombo>0)
+            if (request.QuantitySach > 0 || request.QuantityCombo > 0)
             {
-                if (isCombo)
+                if (request.IsCombo)
                 {
-                    var combo = _context.Combos.FirstOrDefault(c => c.ComboId == id);
+                    var combo = _context.Combos.FirstOrDefault(c => c.ComboId == request.Id);
                     if (combo != null)
                     {
-                        if (quantityCombo > (combo.Quantity ?? 0))
+                        if (request.QuantityCombo > (combo.Quantity ?? 0))
                         {
-                            quantityCombo = combo.Quantity ?? 0;
-                            ViewBag.ErrorMessage = "Số lượng yêu cầu vượt quá số lượng combo có sẵn.";
+                            request.QuantityCombo = combo.Quantity ?? 0;
+                            return Json(new { success = false, message = "Số lượng combo vượt quá giới hạn!" });
                         }
-                        cartItem.SoLuongCombo = quantityCombo; // Đúng thuộc tính
+                        cartItem.SoLuongCombo = request.QuantityCombo;
                     }
                 }
                 else
                 {
-                    var product = _context.Saches.FirstOrDefault(p => p.SachId == id);
+                    var product = _context.Saches.FirstOrDefault(p => p.SachId == request.Id);
                     if (product != null)
                     {
-                        if (quantitySach > product.SoLuong)
+                        if (request.QuantitySach > product.SoLuong)
                         {
-                            quantitySach = product.SoLuong;
-                            ViewBag.ErrorMessage = "Số lượng yêu cầu vượt quá số lượng có sẵn.";
+                            request.QuantitySach = product.SoLuong;
+                            return Json(new { success = false, message = "Số lượng sách vượt quá giới hạn!" });
                         }
-                        cartItem.SoLuongSach = quantitySach;
+                        cartItem.SoLuongSach = request.QuantitySach;
                     }
                 }
-
             }
             else
             {
-                // Xóa mục khỏi giỏ hàng nếu số lượng là 0
                 _context.GioHangChiTiets.Remove(cartItem);
             }
 
-            // Lưu thay đổi
             _context.SaveChanges();
-
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
 
+        public class UpdateCartRequest
+        {
+            public int Id { get; set; }
+            public int QuantityCombo { get; set; }
+            public int QuantitySach { get; set; }
+            public bool IsCombo { get; set; }
+        }
 
 
         [HttpPost]
